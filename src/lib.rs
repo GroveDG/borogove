@@ -6,6 +6,8 @@ pub trait Boro: Sized {
 	/// Element type of the slice.
 	type Item;
 
+	/// Take one `Item` from the slice.
+	fn one(&mut self) -> Option<Self::Item>;
 	/// Take one `Item`, returns wether it exists.
 	fn next(&mut self, i: Self::Item) -> bool;
 	/// Take a `Self` slice, returns wether it exists.
@@ -31,12 +33,18 @@ pub trait Boro: Sized {
 impl Boro for &str {
 	type Item = char;
 
+	fn one(&mut self) -> Option<char> {
+		let one = self.chars().next()?;
+		*self = &self[one.len_utf8()..];
+		Some(one)
+	}
 	fn next(&mut self, i: char) -> bool {
-		let n = self.starts_with(i);
-		if n {
-			*self = &self[i.len_utf8()..];
+		let mut s = *self;
+		if s.one().is_some_and(|c| c == i) {
+			*self = s;
+			return true;
 		}
-		n
+		false
 	}
 	fn start(&mut self, s: Self) -> bool {
 		self.starts_with(s)
