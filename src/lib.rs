@@ -16,7 +16,7 @@ pub trait Boro: Sized {
 	}
 }
 
-impl<'s> Boro for &'s str {
+impl Boro for &str {
 	type Item = char;
 
 	fn next(&mut self, i: char) -> bool {
@@ -32,16 +32,21 @@ impl<'s> Boro for &'s str {
 	fn until(&mut self, mut f: impl FnMut(char) -> bool) -> Option<Self> {
 		let mut chars = self.char_indices();
 		let end = loop {
-			// If we run out of chars, return None.
-			let (i, c) = chars.next()?;
+			// If we run out of chars...
+			let Some((i, c)) = chars.next() else {
+				// ... return None.
+				*self = &self[self.len()..];
+				return None;
+			};
 			// If the char matches...
 			if f(c) {
 				// ... return the start of this char.
 				break i;
 			}
 		};
-		*self = &self[end..];
-		Some(&self[..end])
+		let tmp = *self;
+		*self = &tmp[end..];
+		Some(&tmp[..end])
 	}
 	fn whilst(&mut self, mut f: impl FnMut(char) -> bool) -> Self {
 		let mut chars = self.char_indices();
@@ -57,8 +62,9 @@ impl<'s> Boro for &'s str {
 				break i;
 			}
 		};
-		*self = &self[end..];
-		&self[..end]
+		let tmp = *self;
+		*self = &tmp[end..];
+		&tmp[..end]
 	}
 }
 
@@ -72,4 +78,12 @@ pub trait BoroStr: Boro<Item = char> {
 	fn word(&mut self) -> Self {
 		self.whilst(|c| !char::is_whitespace(c))
 	}
+	fn white(&mut self) -> Self {
+		self.whilst(char::is_whitespace)
+	}
+	fn line(&mut self) -> Option<Self> {
+		self.until(|c| c == '\n')
+	}
 }
+
+impl<T: Boro<Item = char>> BoroStr for T {}
