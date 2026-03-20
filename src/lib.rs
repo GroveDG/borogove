@@ -22,7 +22,9 @@ pub trait Boro: Sized {
 		if !self.next(open) {
 			return None;
 		}
-		self.until(|i| i == close)
+		let content = self.until(|i| i == close)?;
+		self.next(close);
+		Some(content)
 	}
 }
 
