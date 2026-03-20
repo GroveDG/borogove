@@ -7,7 +7,7 @@ And the mome raths outgrabe.
 ";
 
 	{
-		use borogove::{Boro, BoroStr};
+		use borogove::{Boro, BoroText};
 
 		let mut boro = text;
 

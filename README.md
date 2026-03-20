@@ -1,6 +1,6 @@
 # Borogove
 
-Borogove is a simple parsing library. It is built around the following function signature:
+Borogove is a simple personal parsing library. It is built around the following function signature:
 
 ```
 fn name(&mut &str, ...) -> &str
@@ -15,11 +15,10 @@ pub fn main() {
 "'Twas brillig, and the slithy toves
 Did gyre and gimble in the wabe;
 All mimsy were the borogoves,
-And the mome raths outgrabe.
-";
+And the mome raths outgrabe.";
 
 	{
-		use borogove::{Boro, BoroStr};
+		use borogove::{Boro, BoroText};
 
 		let mut boro = text;
 
