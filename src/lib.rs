@@ -10,6 +10,8 @@ pub trait Boro: Sized {
 	fn one(&mut self) -> Option<Self::Item>;
 	/// Take one `Item`, returns wether it exists.
 	fn next(&mut self, i: Self::Item) -> bool;
+	/// Take one `Item` if `f` is true.
+	fn then(&mut self, f: impl FnMut(Self::Item) -> bool) -> bool;
 	/// Take a `Self` slice, returns wether it exists.
 	fn start(&mut self, s: Self) -> bool;
 	/// Take until `f` returns true, returns `None` if never true.
@@ -46,8 +48,20 @@ impl Boro for &str {
 		}
 		false
 	}
+	fn then(&mut self, f: impl FnMut(Self::Item) -> bool) -> bool {
+		let mut s = *self;
+		if s.one().is_some_and(f) {
+			*self = s;
+			return true;
+		}
+		false
+	}
 	fn start(&mut self, s: Self) -> bool {
-		self.starts_with(s)
+		if self.starts_with(s) {
+			*self = &self[s.len()..];
+			return true;
+		}
+		false
 	}
 	fn until(&mut self, mut f: impl FnMut(char) -> bool) -> Option<Self> {
 		let mut chars = self.char_indices();
