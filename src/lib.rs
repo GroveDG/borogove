@@ -1,10 +1,20 @@
+#![warn(missing_docs)]
+#![doc = include_str!("../README.md")]
+
+/// General parsing trait.
 pub trait Boro: Sized {
+	/// Element type of the slice.
 	type Item;
 
+	/// Take one `Item`, returns wether it exists.
 	fn next(&mut self, i: Self::Item) -> bool;
+	/// Take a `Self` slice, returns wether it exists.
 	fn start(&mut self, s: Self) -> bool;
+	/// Take until `f` returns true, returns `None` if never true.
 	fn until(&mut self, f: impl FnMut(Self::Item) -> bool) -> Option<Self>;
+	/// Take while `f` returns true.
 	fn whilst(&mut self, f: impl FnMut(Self::Item) -> bool) -> Self;
+	/// Take all between `open` and `close`, returns `None` if either does not exist.
 	fn block(&mut self, open: Self::Item, close: Self::Item) -> Option<Self>
 	where
 		Self::Item: PartialEq,
@@ -68,22 +78,28 @@ impl Boro for &str {
 	}
 }
 
-pub trait BoroStr: Boro<Item = char> {
+/// Text parsing trait.
+pub trait BoroText: Boro<Item = char> {
+	/// Take while [`char::is_alphabetic`] is true.
 	fn alphas(&mut self) -> Self {
 		self.whilst(char::is_alphabetic)
 	}
+	/// Take while [`char::is_numeric`] is true.
 	fn nums(&mut self) -> Self {
 		self.whilst(char::is_numeric)
 	}
+	/// Take while [`char::is_whitespace`] is false.
 	fn word(&mut self) -> Self {
 		self.whilst(|c| !char::is_whitespace(c))
 	}
+	/// Take while [`char::is_whitespace`] is true.
 	fn white(&mut self) -> Self {
 		self.whilst(char::is_whitespace)
 	}
+	/// Take until `'\n'`.
 	fn line(&mut self) -> Option<Self> {
 		self.until(|c| c == '\n')
 	}
 }
 
-impl<T: Boro<Item = char>> BoroStr for T {}
+impl<T: Boro<Item = char>> BoroText for T {}
