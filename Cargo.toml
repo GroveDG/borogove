@@ -2,5 +2,10 @@
 name = "borogove"
 version = "0.1.0"
 edition = "2024"
+description = "A personal parsing library."
+readme = "README.md"
+repository = "https://github.com/GroveDG/borogove"
+license = "MIT OR Apache-2.0"
+
 
 [dependencies]
