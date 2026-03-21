@@ -32,6 +32,22 @@ pub trait Boro: Sized {
 	}
 }
 
+/// Reverse of [`Boro`].
+pub trait Orob: Boro {
+	/// Reverse of [`Boro::one`].
+	fn back(&mut self) -> Option<Self::Item>;
+	/// Reverse of [`Boro::next`].
+	fn last(&mut self, i: Self::Item) -> bool;
+	/// Reverse of [`Boro::then`].
+	fn thence(&mut self, f: impl FnMut(Self::Item) -> bool) -> bool;
+	/// Reverse of [`Boro::start`].
+	fn end(&mut self, s: Self) -> bool;
+	/// Reverse of [`Boro::until`].
+	fn since(&mut self, f: impl FnMut(Self::Item) -> bool) -> Option<Self>;
+	/// Reverse of [`Boro::whilst`].
+	fn hence(&mut self, f: impl FnMut(Self::Item) -> bool) -> Self;
+}
+
 impl Boro for &str {
 	type Item = char;
 
@@ -99,6 +115,74 @@ impl Boro for &str {
 		let tmp = *self;
 		*self = &tmp[end..];
 		&tmp[..end]
+	}
+}
+
+impl Orob for &str {
+	fn back(&mut self) -> Option<char> {
+		let one = self.chars().rev().next()?;
+		*self = &self[one.len_utf8()..];
+		Some(one)
+	}
+	fn last(&mut self, i: char) -> bool {
+		let mut s = *self;
+		if s.back().is_some_and(|c| c == i) {
+			*self = s;
+			return true;
+		}
+		false
+	}
+	fn thence(&mut self, f: impl FnMut(Self::Item) -> bool) -> bool {
+		let mut s = *self;
+		if s.back().is_some_and(f) {
+			*self = s;
+			return true;
+		}
+		false
+	}
+	fn end(&mut self, s: Self) -> bool {
+		if self.ends_with(s) {
+			*self = &self[..self.len() - s.len()];
+			return true;
+		}
+		false
+	}
+	fn since(&mut self, mut f: impl FnMut(char) -> bool) -> Option<Self> {
+		let mut chars = self.char_indices().rev();
+		let start = loop {
+			// If we run out of chars...
+			let Some((i, c)) = chars.next() else {
+				// ... return None.
+				*self = &self[..0];
+				return None;
+			};
+			// If the char matches...
+			if f(c) {
+				// ... return the end of this char.
+				break i + c.len_utf8();
+			}
+		};
+		let tmp = *self;
+		*self = &tmp[..start];
+		Some(&tmp[start..])
+	}
+	fn hence(&mut self, mut f: impl FnMut(char) -> bool) -> Self {
+		let mut chars = self.char_indices().rev();
+		let start = loop {
+			// If all chars are matching and we run out...
+			let Some((i, c)) = chars.next() else {
+				// ... return the full string.
+				break 0;
+			};
+			// If the char doesn't match...
+			if !f(c) {
+				// ... return the end of this char.
+				break i + c.len_utf8();
+			}
+		};
+		let tmp = *self;
+		*self = &tmp[..start];
+		&tmp[start..]
 	}
 }
 
