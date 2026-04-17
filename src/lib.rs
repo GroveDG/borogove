@@ -121,7 +121,7 @@ impl Boro for &str {
 impl Orob for &str {
 	fn back(&mut self) -> Option<char> {
 		let one = self.chars().rev().next()?;
-		*self = &self[one.len_utf8()..];
+		*self = &self[..self.len() - one.len_utf8()];
 		Some(one)
 	}
 	fn last(&mut self, i: char) -> bool {
@@ -211,3 +211,35 @@ pub trait BoroText: Boro<Item = char> {
 }
 
 impl<T: Boro<Item = char>> BoroText for T {}
+
+#[test]
+fn test_until() {
+	let input = "abcdefg[hijkl]mnopq=rstuvwxyz";
+	let mut boro = input;
+	let a = boro.until(|c| c == '[');
+	assert_eq!(Some("abcdefg"), a);
+	boro.one();
+	let b = boro.until(|c| c == ']');
+	assert_eq!(Some("hijkl"), b);
+	boro.one();
+	let c = boro.until(|c| c == '=');
+	boro.one();
+	assert_eq!(Some("mnopq"), c);
+	assert_eq!("rstuvwxyz", boro);
+}
+
+#[test]
+fn test_since() {
+	let input = "abcdefg[hijkl]mnopq=rstuvwxyz";
+	let mut boro = input;
+	let c = boro.since(|c| c == '=');
+	assert_eq!(Some("rstuvwxyz"), c);
+	boro.back();
+	let b = boro.since(|c| c == ']');
+	assert_eq!(Some("mnopq"), b);
+	boro.back();
+	let a = boro.since(|c| c == '[');
+	assert_eq!(Some("hijkl"), a);
+	boro.back();
+	assert_eq!("abcdefg", boro);
+}
