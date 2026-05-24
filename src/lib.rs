@@ -244,3 +244,20 @@ fn test_since() {
 	boro.back();
 	assert_eq!("abcdefg", boro);
 }
+
+/// [`FromStr`](core::str::FromStr) that takes what it parses from the slice.
+/// 
+/// This trait is useful to implement instead of or along side [`FromStr`](core::str::FromStr).
+/// It follows the borogove pattern of `&mut &str` to integrate with additional parsing.
+pub trait TakeFromStr: Sized {
+	/// The associated error which can be returned from parsing.
+	type Err;	
+
+	/// Parses a string `s` consuming the parsed slice and returns a value of this type.
+	/// (Parallel to [`from_str`](core::str::FromStr::from_str))
+	///
+	/// If parsing succeeds, return the value inside [`Ok`], otherwise when the string
+	/// is ill-formatted return an error specific to the inside [`Err`]. The error type
+	/// is specific to the implementation of the trait.
+	fn take_from_str(s: &mut &str) -> Result<Self, Self::Err>;
+}
