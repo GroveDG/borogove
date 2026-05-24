@@ -1,5 +1,6 @@
 #![warn(missing_docs)]
 #![doc = include_str!("../README.md")]
+#![no_std]
 
 /// General parsing trait.
 pub trait Boro: Sized {
